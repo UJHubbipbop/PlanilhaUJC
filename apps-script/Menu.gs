@@ -5,7 +5,9 @@
 function onOpen() {
   SpreadsheetApp.getUi()
     .createMenu('Painel de Recrutamento')
-    .addItem('Importar de Outra Planilha (Col O e T)', 'importarViaPrompt')
+    .addItem('Sincronizar com Planilha Original (Substituir Tudo)', 'sincronizarRecrutamentoDoZero')
+    .addItem('Clonar Aba Original (Copia 1:1 Completa)', 'clonarAbaOriginal')
+    .addSeparator()
     .addItem('Verificar aba recrutamento', 'inicializarAba')
     .addSeparator()
     .addItem('Configurar chaves de acesso', 'configurarChaves')
