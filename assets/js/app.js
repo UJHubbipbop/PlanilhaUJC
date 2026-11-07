@@ -72,7 +72,6 @@ async function entrar(chave, lembrar) {
 
   try {
     const res = await Api.carregarDados(chave);
-    // lembrar === null significa chave ja salva anteriormente: mantem onde esta
     if (lembrar !== null) Sessao.salvar(chave, lembrar);
     receberDados(res);
     $('tela-login').classList.add('hidden');
@@ -188,7 +187,6 @@ function aplicarFiltros() {
   const agora = new Date();
   const DIA = 24 * 60 * 60 * 1000;
 
-  // Filtros sem status (base para contadores e graficos)
   const base = Estado.candidatos.filter(c => {
     if (rec !== 'todos' && c.recrutador !== rec) return false;
     if (cel !== 'todos' && c.celula !== cel) return false;
@@ -203,7 +201,11 @@ function aplicarFiltros() {
     }
 
     if (busca) {
-      const txt = [c.nome, c.email, c.celular, c.trabalho, c.motivoInscricao, c.recrutador, c.celula].join(' ').toLowerCase();
+      const txt = [
+        c.nome, c.email, c.celular, c.trabalho, c.motivoInscricao,
+        c.recrutador, c.celula, c.municipio, c.regiaoMunicipal,
+        c.setorEstrategico, c.entidadeAtua, c.genero
+      ].join(' ').toLowerCase();
       if (!txt.includes(busca)) return false;
     }
     return true;
@@ -265,11 +267,13 @@ function renderizarTabela(lista) {
       ? '<span class="text-zinc-400">Sem celular</span>'
       : '<a href="' + esc(whats) + '" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1 bg-red-50 hover:bg-red-100 text-red-900 border border-red-300 rounded font-semibold transition-colors">WhatsApp</a>';
 
+    const subInfo = [c.trabalho, c.municipio].filter(Boolean).join(' • ');
+
     return '<tr class="hover:bg-zinc-50 transition-colors">' +
       '<td class="py-3 px-4 font-bold text-zinc-900">' +
         '<button data-abrir="' + id + '" class="text-left hover:text-red-700 transition-colors">' +
           '<div>' + esc(c.nome) + '</div>' +
-          '<div class="text-[10px] text-zinc-400 font-normal">' + esc(c.trabalho) + '</div>' +
+          '<div class="text-[10px] text-zinc-400 font-normal">' + esc(subInfo) + '</div>' +
         '</button>' +
       '</td>' +
       '<td class="py-3 px-4 font-medium">' + esc(c.celula || 'UJC') + '</td>' +
@@ -302,8 +306,19 @@ function abrirDrawer(id) {
   $('drawer-celular').textContent = c.celular || '-';
   $('drawer-idade').textContent = c.idade ? c.idade + ' anos' : '-';
   $('drawer-data').textContent = Utils.formatarDataBR(c.dataInscricao);
-  $('drawer-ocupacao').textContent = c.trabalho || 'Nenhuma ocupacao informada (Coluna O vazia).';
-  $('drawer-motivo').textContent = c.motivoInscricao || 'Nenhum motivo informado (Coluna T vazia).';
+  $('drawer-municipio').textContent = c.municipio || '-';
+  $('drawer-regiao').textContent = c.regiaoMunicipal || '-';
+  $('drawer-genero').textContent = [c.genero, c.pronomes].filter(Boolean).join(' • ') || '-';
+  $('drawer-redes').textContent = c.redesSociais || '-';
+
+  $('drawer-setor').textContent = c.setorEstrategico || '-';
+  $('drawer-regime').textContent = c.regimeContratual || '-';
+  $('drawer-ensino').textContent = c.nivelEnsino || '-';
+  $('drawer-entidade').textContent = c.entidadeAtua || '-';
+  $('drawer-como-acompanhava').textContent = c.comoAcompanhava || '-';
+
+  $('drawer-ocupacao').textContent = c.trabalho || 'Nenhuma atuacao profissional informada.';
+  $('drawer-motivo').textContent = c.motivoInscricao || 'Nenhum motivo informado.';
 
   const whats = Utils.gerarLinkWhatsApp(c.celular, c.nome);
   const btnWhats = $('drawer-whatsapp');
@@ -454,7 +469,6 @@ function contarPor(lista, chaveFn) {
   return Object.entries(mapa).sort((a, b) => b[1] - a[1]);
 }
 
-/** rotulo ja deve vir escapado */
 function linhaBarra(rotulo, qtd, max, cor) {
   const pct = Math.min(100, Math.round((qtd / (max || 1)) * 100));
   return '<div class="flex items-center justify-between text-xs">' +

@@ -1,6 +1,5 @@
 /**
  * OPERACOES DE LEITURA E ESCRITA DE CANDIDATOS
- * (as permissoes sao verificadas em Api.gs antes de chegar aqui)
  */
 
 function getCandidates() {
@@ -13,22 +12,38 @@ function getCandidates() {
 
   for (var i = 0; i < data.length; i++) {
     var row = data[i];
-    if (!row[0] && !row[1]) continue;
+    // Se linha inteira estiver vazia (sem ID e sem Nome)
+    if (!row[0] && !row[1] && !row[9]) continue;
+
+    var nome = String(row[COL.NOME - 1] || row[COL.NOME_FORM - 1] || '').trim();
+    var telefone = String(row[COL.TELEFONE - 1] || row[COL.TEL_FORM - 1] || '').trim();
+    var email = String(row[COL.EMAIL - 1] || row[COL.EMAIL_FORM - 1] || '').trim();
 
     candidates.push({
-      id: String(row[0] || ('rec-' + (i + 1))),
-      nome: String(row[1] || ''),
-      email: String(row[2] || ''),
-      celular: String(row[3] || ''),
-      idade: Number(row[4]) || null,
-      celula: String(row[5] || 'UJC'),
-      recrutador: String(row[6] || RECRUTADOR_VAZIO),
-      status: normalizarStatus(row[7]),
-      trabalho: String(row[8] || ''),
-      motivoInscricao: String(row[9] || ''),
-      dataInscricao: formatarData(row[10]),
-      avisos: lerHistorico(row[11]),
-      ultimaAtualizacao: row[12] ? formatarData(row[12]) : ''
+      id: String(row[COL.ID - 1] || ('rec-' + (i + 1))),
+      nome: nome,
+      celular: telefone,
+      email: email,
+      celula: String(row[COL.CELULA - 1] || 'UJC').trim(),
+      status: normalizarStatus(row[COL.SITUACAO - 1]),
+      recrutador: String(row[COL.RECRUTADOR - 1] || RECRUTADOR_VAZIO).trim(),
+      prioridade: String(row[COL.PRIORIDADE - 1] || '').trim(),
+      redesSociais: String(row[COL.REDES_SOCIAIS - 1] || '').trim(),
+      municipio: String(row[COL.MUNICIPIO - 1] || '').trim(),
+      regiaoMunicipal: String(row[COL.REGIAO_MUNICIPAL - 1] || '').trim(),
+      trabalho: String(row[COL.ATUACAO_PROFISSIONAL - 1] || '').trim(),
+      setorEstrategico: String(row[COL.SETOR_ESTRATEGICO - 1] || '').trim(),
+      regimeContratual: String(row[COL.REGIME_CONTRATUAL - 1] || '').trim(),
+      nivelEnsino: String(row[COL.NIVEL_ENSINO - 1] || '').trim(),
+      entidadeAtua: String(row[COL.ENTIDADE_ATUA - 1] || '').trim(),
+      motivoInscricao: String(row[COL.MOTIVO_ORGANIZAR - 1] || '').trim(),
+      idade: Number(row[COL.IDADE - 1]) || null,
+      genero: String(row[COL.GENERO - 1] || '').trim(),
+      pronomes: String(row[COL.PRONOMES - 1] || '').trim(),
+      comoAcompanhava: String(row[COL.COMO_ACOMPANHAVA - 1] || '').trim(),
+      dataInscricao: formatarData(row[COL.DATA_INSCRICAO - 1]),
+      avisos: lerHistorico(row[COL.HISTORICO - 1]),
+      ultimaAtualizacao: row[COL.ULTIMA_ATUALIZACAO - 1] ? formatarData(row[COL.ULTIMA_ATUALIZACAO - 1]) : ''
     });
   }
   return candidates;
@@ -41,7 +56,7 @@ function updateCandidateStatus(candidateId, newStatus) {
     if (rowNum === -1) return { ok: false, erro: 'Candidato nao encontrado.' };
 
     var statusNormalizado = normalizarStatus(newStatus);
-    sheet.getRange(rowNum, COL.STATUS).setValue(statusNormalizado);
+    sheet.getRange(rowNum, COL.SITUACAO).setValue(statusNormalizado);
     sheet.getRange(rowNum, COL.ULTIMA_ATUALIZACAO).setValue(new Date().toISOString());
     var aviso = adicionarAvisoInterno(sheet, rowNum, 'Status alterado para: ' + statusNormalizado, 'status_change');
     return { ok: true, status: statusNormalizado, aviso: aviso };
@@ -104,7 +119,7 @@ function lerHistorico(valor) {
 }
 
 /**
- * Evita que duas edicoes simultaneas sobrescrevam o historico uma da outra.
+ * Evita que duas edicoes simultaneas sobrescrevam dados
  */
 function comLock(fn) {
   var lock = LockService.getScriptLock();

@@ -89,7 +89,7 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs">
           <div>
             <label for="filtro-busca" class="filtro-label">Busca geral:</label>
-            <input type="text" id="filtro-busca" placeholder="Nome, email, celular..." class="filtro-input">
+            <input type="text" id="filtro-busca" placeholder="Nome, email, telefone, cidade..." class="filtro-input">
           </div>
           <div>
             <label for="filtro-recrutador" class="filtro-label">Recrutador (CMRD):</label>
@@ -174,14 +174,14 @@
     </main>
 
     <footer class="text-center text-[11px] text-zinc-400 py-4">
-      Painel de Recrutamento • dados servidos pela planilha do Google Sheets
+      Painel de Recrutamento • dados sincronizados com a planilha oficial
     </footer>
   </div>
 
-  <!-- GAVETA LATERAL DO CANDIDATO -->
+  <!-- GAVETA LATERAL DO CANDIDATO (FICHA COMPLETA) -->
   <div id="drawer" class="fixed inset-0 z-50 hidden">
     <div class="fixed inset-0 bg-zinc-950/60" data-fechar-drawer></div>
-    <div class="fixed inset-y-0 right-0 w-full max-w-lg bg-white shadow-2xl flex flex-col z-10 overflow-hidden">
+    <div class="fixed inset-y-0 right-0 w-full max-w-xl bg-white shadow-2xl flex flex-col z-10 overflow-hidden">
       <div class="px-6 py-4 bg-zinc-950 text-white flex items-center justify-between border-b border-red-900/60">
         <div>
           <h3 id="drawer-nome" class="text-base font-bold text-white">-</h3>
@@ -196,24 +196,43 @@
           Abrir Conversa no WhatsApp
         </a>
 
+        <!-- Informacoes Pessoais e Contato -->
         <div class="bg-zinc-50 border border-zinc-200 rounded-xl p-3 space-y-2">
-          <h4 class="font-bold text-zinc-800 uppercase text-[11px]">Informacoes Pessoais</h4>
+          <h4 class="font-bold text-zinc-800 uppercase text-[11px]">Informacoes Pessoais & Localizacao</h4>
           <div class="grid grid-cols-2 gap-2 text-zinc-600">
             <div><span class="text-zinc-400 block text-[10px]">Email:</span><span id="drawer-email" class="font-medium text-zinc-800 break-all">-</span></div>
-            <div><span class="text-zinc-400 block text-[10px]">Celular:</span><span id="drawer-celular" class="font-medium text-zinc-800">-</span></div>
+            <div><span class="text-zinc-400 block text-[10px]">Celular / WhatsApp:</span><span id="drawer-celular" class="font-medium text-zinc-800">-</span></div>
             <div><span class="text-zinc-400 block text-[10px]">Idade:</span><span id="drawer-idade" class="font-medium text-zinc-800">-</span></div>
             <div><span class="text-zinc-400 block text-[10px]">Data Inscricao:</span><span id="drawer-data" class="font-medium text-zinc-800">-</span></div>
+            <div><span class="text-zinc-400 block text-[10px]">Municipio:</span><span id="drawer-municipio" class="font-medium text-zinc-800">-</span></div>
+            <div><span class="text-zinc-400 block text-[10px]">Regiao Municipal:</span><span id="drawer-regiao" class="font-medium text-zinc-800">-</span></div>
+            <div><span class="text-zinc-400 block text-[10px]">Genero / Pronomes:</span><span id="drawer-genero" class="font-medium text-zinc-800">-</span></div>
+            <div><span class="text-zinc-400 block text-[10px]">Redes Sociais:</span><span id="drawer-redes" class="font-medium text-zinc-800 break-all">-</span></div>
           </div>
         </div>
 
+        <!-- Formacao, Trabalho e Atuacao -->
+        <div class="bg-zinc-50 border border-zinc-200 rounded-xl p-3 space-y-2">
+          <h4 class="font-bold text-zinc-800 uppercase text-[11px]">Trabalho & Insercao Social</h4>
+          <div class="grid grid-cols-2 gap-2 text-zinc-600">
+            <div><span class="text-zinc-400 block text-[10px]">Setor Estrategico:</span><span id="drawer-setor" class="font-medium text-zinc-800">-</span></div>
+            <div><span class="text-zinc-400 block text-[10px]">Regime Contratual:</span><span id="drawer-regime" class="font-medium text-zinc-800">-</span></div>
+            <div><span class="text-zinc-400 block text-[10px]">Nivel de Ensino:</span><span id="drawer-ensino" class="font-medium text-zinc-800">-</span></div>
+            <div><span class="text-zinc-400 block text-[10px]">Entidade que Atua:</span><span id="drawer-entidade" class="font-medium text-zinc-800">-</span></div>
+            <div class="col-span-2"><span class="text-zinc-400 block text-[10px]">Como acompanhava o Partido:</span><span id="drawer-como-acompanhava" class="font-medium text-zinc-800">-</span></div>
+          </div>
+        </div>
+
+        <!-- Atuacao Profissional -->
         <div class="bg-red-50/60 border border-red-200 rounded-xl p-3">
           <div class="flex items-center justify-between mb-1">
-            <span class="font-bold text-red-950 uppercase text-[11px]">Ocupacao dessa pessoa</span>
+            <span class="font-bold text-red-950 uppercase text-[11px]">Atuacao Profissional</span>
             <span class="text-[10px] font-mono text-red-700 font-bold">Coluna O</span>
           </div>
           <p id="drawer-ocupacao" class="text-zinc-800 italic whitespace-pre-line">-</p>
         </div>
 
+        <!-- Porque decidiu se organizar -->
         <div class="bg-red-100/50 border border-red-300 rounded-xl p-3">
           <div class="flex items-center justify-between mb-1">
             <span class="font-bold text-red-950 uppercase text-[11px]">Porque decidiu se organizar?</span>
@@ -222,8 +241,9 @@
           <p id="drawer-motivo" class="text-zinc-800 whitespace-pre-line">-</p>
         </div>
 
+        <!-- Adicionar Anotacao -->
         <div id="drawer-box-aviso" class="bg-zinc-50 border border-zinc-200 rounded-xl p-3">
-          <h4 class="font-bold text-zinc-800 uppercase text-[11px] mb-2">Adicionar Anotacao</h4>
+          <h4 class="font-bold text-zinc-800 uppercase text-[11px] mb-2">Adicionar Anotacao / Registro</h4>
           <textarea id="novo-aviso-texto" rows="2" maxlength="2000" placeholder="Digite uma anotacao sobre o candidato..."
             class="w-full bg-white border border-zinc-300 rounded-lg p-2 text-xs focus:ring-1 focus:ring-red-600 focus:outline-none mb-2"></textarea>
           <div class="flex justify-end">
@@ -235,6 +255,7 @@
           Modo consulta: apenas o proprietario da planilha pode alterar status, atribuir recrutadores e registrar anotacoes.
         </div>
 
+        <!-- Historico Registrado -->
         <div>
           <h4 class="font-bold text-zinc-800 uppercase text-[11px] mb-2">Historico Registrado</h4>
           <div id="drawer-avisos" class="space-y-2"></div>
