@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Painel de Recrutamento</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body class="bg-zinc-100 text-zinc-800 min-h-screen flex flex-col font-sans antialiased">
+
+  <!-- TOAST -->
+  <div id="toast" class="fixed bottom-5 right-5 z-[60] hidden bg-zinc-950 text-white px-4 py-2.5 rounded-xl shadow-2xl text-xs font-semibold flex items-center gap-2 border border-red-800">
+    <span id="toast-dot" class="w-2 h-2 rounded-full bg-red-500"></span>
+    <span id="toast-text">Mensagem</span>
+  </div>
+
+  <!-- ===================== TELA DE LOGIN ===================== -->
+  <section id="tela-login" class="flex-1 flex items-center justify-center p-4 bg-gradient-to-br from-zinc-950 via-red-950 to-zinc-900">
+    <form id="form-login" class="w-full max-w-sm bg-white rounded-2xl shadow-2xl p-6 space-y-4">
+      <div class="flex items-center gap-3">
+        <div class="logo-ujc">UJC</div>
+        <div>
+          <h1 class="text-lg font-bold text-zinc-900">Painel de Recrutamento</h1>
+          <p class="text-xs text-zinc-500">Informe sua chave de acesso</p>
+        </div>
+      </div>
+
+      <div>
+        <label for="input-chave" class="block text-[11px] font-semibold text-zinc-600 uppercase mb-1">Chave de acesso</label>
+        <input id="input-chave" type="password" autocomplete="current-password" required
+          class="w-full bg-zinc-50 border border-zinc-300 rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-red-600 focus:outline-none">
+      </div>
+
+      <label class="flex items-center gap-2 text-xs text-zinc-600">
+        <input id="check-lembrar" type="checkbox" class="accent-red-700"> Lembrar neste dispositivo
+      </label>
+
+      <p id="login-erro" class="hidden text-xs font-semibold text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2"></p>
+
+      <button id="btn-login" type="submit" class="w-full py-2.5 bg-red-800 hover:bg-red-700 text-white font-semibold rounded-lg text-sm transition-colors">
+        Entrar
+      </button>
+    </form>
+  </section>
+
+  <!-- ===================== APLICACAO ===================== -->
+  <div id="tela-app" class="hidden flex-1 flex flex-col">
+
+    <!-- CABECALHO -->
+    <header class="bg-zinc-950 text-white border-b border-red-900/60 sticky top-0 z-30 shadow-md">
+      <div class="max-w-7xl mx-auto px-4 py-3 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+        <div class="flex items-center gap-3">
+          <div class="logo-ujc">UJC</div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h1 class="text-base sm:text-lg font-bold tracking-tight">Painel de Recrutamento</h1>
+              <span class="text-[10px] uppercase font-semibold px-2 py-0.5 rounded bg-red-950 text-red-300 border border-red-800/80">Aba: recrutamento</span>
+            </div>
+            <p class="text-xs text-zinc-400">Gestao de Quadros e Militancia • Celulas e Recrutadores</p>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
+          <button id="btn-atualizar" class="px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-zinc-200 text-xs font-medium rounded-lg transition-colors">
+            Atualizar
+          </button>
+          <span id="label-perfil" class="px-3 py-1 rounded-lg text-xs font-semibold border bg-zinc-800 text-zinc-300 border-zinc-700">-</span>
+          <button id="btn-sair" class="px-3 py-1.5 bg-red-900 hover:bg-red-800 border border-red-700 text-white text-xs font-medium rounded-lg transition-colors">
+            Sair
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- FILTROS -->
+    <section class="max-w-7xl mx-auto px-4 py-4 w-full">
+      <div class="bg-white rounded-xl shadow-xs border border-zinc-200 p-4 space-y-3">
+        <div id="tabs-status" class="flex flex-wrap items-center gap-2 border-b border-zinc-100 pb-3">
+          <span class="text-xs font-bold text-zinc-500 uppercase mr-1">Status:</span>
+          <button data-status="todos" class="tab-status">Todos (<span data-count="todos">0</span>)</button>
+          <button data-status="pendente" class="tab-status">Pendente (<span data-count="pendente">0</span>)</button>
+          <button data-status="em recrutamento" class="tab-status">Em Recrutamento (<span data-count="em recrutamento">0</span>)</button>
+          <button data-status="contato" class="tab-status">Contato (<span data-count="contato">0</span>)</button>
+          <button data-status="desistencia" class="tab-status">Desistencia (<span data-count="desistencia">0</span>)</button>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+          <div>
+            <label for="filtro-busca" class="filtro-label">Busca geral:</label>
+            <input type="text" id="filtro-busca" placeholder="Nome, email, celular..." class="filtro-input">
+          </div>
+          <div>
+            <label for="filtro-recrutador" class="filtro-label">Recrutador (CMRD):</label>
+            <select id="filtro-recrutador" class="filtro-input"></select>
+          </div>
+          <div>
+            <label for="filtro-celula" class="filtro-label">Celula:</label>
+            <select id="filtro-celula" class="filtro-input"></select>
+          </div>
+          <div>
+            <label for="filtro-data" class="filtro-label">Periodo:</label>
+            <select id="filtro-data" class="filtro-input">
+              <option value="todos">Qualquer data</option>
+              <option value="7d">Ultimos 7 dias</option>
+              <option value="30d">Ultimos 30 dias</option>
+              <option value="mes">Este mes</option>
+              <option value="ano">Este ano</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- GRAFICOS -->
+    <section class="max-w-7xl mx-auto px-4 py-2 w-full">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div class="lg:col-span-2 card">
+          <h3 class="card-titulo">Desempenho Mensal de Recrutamento</h3>
+          <p class="text-[11px] text-zinc-500 mb-2">Inscricoes por mes no ano atual (respeita os filtros)</p>
+          <div id="grafico-mensal" class="h-40 flex items-end justify-between gap-1 pt-4 px-1"></div>
+        </div>
+        <div class="card flex flex-col justify-between">
+          <div>
+            <h3 class="card-titulo">Desempenho Anual</h3>
+            <p class="text-[11px] text-zinc-500 mb-3">Inscricoes por ano</p>
+            <div id="grafico-anual" class="space-y-2"></div>
+          </div>
+          <div class="pt-3 mt-3 border-t border-zinc-100 text-xs text-zinc-600 flex justify-between items-center">
+            <span>Total cadastrados:</span>
+            <strong id="total-cadastrados" class="text-red-800 text-base font-bold">0</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+        <div class="card">
+          <h3 class="card-titulo">Candidatos por Recrutador (CMRD)</h3>
+          <div id="lista-recrutadores" class="space-y-2 mt-3"></div>
+        </div>
+        <div class="card">
+          <h3 class="card-titulo">Distribuicao por Celula</h3>
+          <div id="lista-celulas" class="space-y-2 mt-3"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TABELA -->
+    <main class="max-w-7xl mx-auto px-4 py-4 w-full flex-1">
+      <div class="bg-white rounded-xl shadow-xs border border-zinc-200 overflow-hidden">
+        <div class="px-5 py-3 border-b border-zinc-200 flex items-center justify-between">
+          <h2 class="text-sm font-bold text-zinc-900">Lista Geral de Candidatos</h2>
+          <span id="badge-contagem" class="text-xs font-semibold px-2.5 py-1 bg-red-50 text-red-800 border border-red-200 rounded-lg">0 exibidos</span>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-zinc-700">
+            <thead class="bg-zinc-50 text-zinc-600 uppercase font-semibold border-b border-zinc-200">
+              <tr>
+                <th class="py-3 px-4">Candidato</th>
+                <th class="py-3 px-4">Celula</th>
+                <th class="py-3 px-4">Recrutador (CMRD)</th>
+                <th class="py-3 px-4">Status</th>
+                <th class="py-3 px-4">Contato</th>
+                <th class="py-3 px-4 text-center">Historico</th>
+              </tr>
+            </thead>
+            <tbody id="tabela-body" class="divide-y divide-zinc-100">
+              <tr><td colspan="6" class="py-8 text-center text-zinc-400">Carregando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+
+    <footer class="text-center text-[11px] text-zinc-400 py-4">
+      Painel de Recrutamento • dados servidos pela planilha do Google Sheets
+    </footer>
+  </div>
+
+  <!-- GAVETA LATERAL DO CANDIDATO -->
+  <div id="drawer" class="fixed inset-0 z-50 hidden">
+    <div class="fixed inset-0 bg-zinc-950/60" data-fechar-drawer></div>
+    <div class="fixed inset-y-0 right-0 w-full max-w-lg bg-white shadow-2xl flex flex-col z-10 overflow-hidden">
+      <div class="px-6 py-4 bg-zinc-950 text-white flex items-center justify-between border-b border-red-900/60">
+        <div>
+          <h3 id="drawer-nome" class="text-base font-bold text-white">-</h3>
+          <p id="drawer-subtitulo" class="text-xs text-zinc-400">-</p>
+        </div>
+        <button data-fechar-drawer class="text-zinc-400 hover:text-white px-2 py-1 text-sm font-bold rounded">Fechar</button>
+      </div>
+
+      <div class="p-6 space-y-4 overflow-y-auto flex-1 text-xs">
+        <a id="drawer-whatsapp" href="#" target="_blank" rel="noopener noreferrer"
+          class="flex items-center justify-center w-full py-3 px-4 bg-red-700 hover:bg-red-800 text-white font-bold rounded-xl shadow-md transition-colors">
+          Abrir Conversa no WhatsApp
+        </a>
+
+        <div class="bg-zinc-50 border border-zinc-200 rounded-xl p-3 space-y-2">
+          <h4 class="font-bold text-zinc-800 uppercase text-[11px]">Informacoes Pessoais</h4>
+          <div class="grid grid-cols-2 gap-2 text-zinc-600">
+            <div><span class="text-zinc-400 block text-[10px]">Email:</span><span id="drawer-email" class="font-medium text-zinc-800 break-all">-</span></div>
+            <div><span class="text-zinc-400 block text-[10px]">Celular:</span><span id="drawer-celular" class="font-medium text-zinc-800">-</span></div>
+            <div><span class="text-zinc-400 block text-[10px]">Idade:</span><span id="drawer-idade" class="font-medium text-zinc-800">-</span></div>
+            <div><span class="text-zinc-400 block text-[10px]">Data Inscricao:</span><span id="drawer-data" class="font-medium text-zinc-800">-</span></div>
+          </div>
+        </div>
+
+        <div class="bg-red-50/60 border border-red-200 rounded-xl p-3">
+          <div class="flex items-center justify-between mb-1">
+            <span class="font-bold text-red-950 uppercase text-[11px]">Ocupacao dessa pessoa</span>
+            <span class="text-[10px] font-mono text-red-700 font-bold">Coluna O</span>
+          </div>
+          <p id="drawer-ocupacao" class="text-zinc-800 italic whitespace-pre-line">-</p>
+        </div>
+
+        <div class="bg-red-100/50 border border-red-300 rounded-xl p-3">
+          <div class="flex items-center justify-between mb-1">
+            <span class="font-bold text-red-950 uppercase text-[11px]">Porque decidiu se organizar?</span>
+            <span class="text-[10px] font-mono text-red-800 font-bold">Coluna T</span>
+          </div>
+          <p id="drawer-motivo" class="text-zinc-800 whitespace-pre-line">-</p>
+        </div>
+
+        <div id="drawer-box-aviso" class="bg-zinc-50 border border-zinc-200 rounded-xl p-3">
+          <h4 class="font-bold text-zinc-800 uppercase text-[11px] mb-2">Adicionar Anotacao</h4>
+          <textarea id="novo-aviso-texto" rows="2" maxlength="2000" placeholder="Digite uma anotacao sobre o candidato..."
+            class="w-full bg-white border border-zinc-300 rounded-lg p-2 text-xs focus:ring-1 focus:ring-red-600 focus:outline-none mb-2"></textarea>
+          <div class="flex justify-end">
+            <button id="btn-salvar-aviso" class="px-3 py-1.5 bg-red-800 hover:bg-red-700 text-white rounded-lg text-xs font-semibold transition-colors">Salvar no Historico</button>
+          </div>
+        </div>
+
+        <div id="drawer-box-leitura" class="hidden bg-amber-50 border border-amber-200 rounded-xl p-3 text-amber-900">
+          Modo consulta: apenas o proprietario da planilha pode alterar status, atribuir recrutadores e registrar anotacoes.
+        </div>
+
+        <div>
+          <h4 class="font-bold text-zinc-800 uppercase text-[11px] mb-2">Historico Registrado</h4>
+          <div id="drawer-avisos" class="space-y-2"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/js/config.js"></script>
+  <script src="assets/js/utils.js"></script>
+  <script src="assets/js/api.js"></script>
+  <script src="assets/js/app.js"></script>
+</body>
+</html>
