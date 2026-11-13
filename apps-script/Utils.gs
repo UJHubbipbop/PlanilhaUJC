@@ -41,6 +41,46 @@ function normalizarCelula(valor) {
   return 'UJC';
 }
 
+/**
+ * Verifica se um valor e um nome de pessoa valido (ignora numeros como "13", emails ou datas).
+ */
+function ehNomeValido(valor) {
+  if (!valor || valor instanceof Date) return false;
+  var s = String(valor).trim();
+  if (!s || s.indexOf('@') !== -1) return false;
+  if (/^\d+$/.test(s)) return false;
+  if (/gmt|hor[aá]rio/i.test(s)) return false;
+  return /[a-zA-ZÀ-ÿ]{2,}/.test(s);
+}
+
+function escolherNome(colPrincipal, colFormulario) {
+  if (ehNomeValido(colFormulario)) return String(colFormulario).trim();
+  if (ehNomeValido(colPrincipal)) return String(colPrincipal).trim();
+  return String(colFormulario || colPrincipal || 'Sem nome').trim();
+}
+
+/**
+ * Escolhe o telefone que realmente possui digitos de telefone (pelo menos 8 digitos).
+ */
+function escolherTelefone(colPrincipal, colFormulario) {
+  var dForm = String(colFormulario || '').replace(/\D/g, '');
+  if (dForm.length >= 8) return String(colFormulario).trim();
+  var dPrin = String(colPrincipal || '').replace(/\D/g, '');
+  if (dPrin.length >= 8) return String(colPrincipal).trim();
+  return String(colFormulario || colPrincipal || '').trim();
+}
+
+/**
+ * Escolhe o email valido (que contem "@").
+ */
+function escolherEmail(colPrincipal, colFormulario) {
+  var eForm = String(colFormulario || '').trim();
+  if (eForm.indexOf('@') !== -1) return eForm;
+  var ePrin = String(colPrincipal || '').trim();
+  if (ePrin.indexOf('@') !== -1) return ePrin;
+  return eForm || ePrin || '';
+}
+
 function extrairSpreadsheetId(urlOuId) {
   if (!urlOuId) return '';
   var trimmed = String(urlOuId).trim();

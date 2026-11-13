@@ -116,8 +116,8 @@ function importarDeOutraPlanilha(urlOuId, nomeAbaOrigem, modoImportacao) {
 
     for (var r = 1; r < values.length; r++) {
       var row = values[r];
-      var nomeLinha = String(row[1] || row[9] || row[0] || '').trim();
-      if (!nomeLinha) continue;
+      var nomeLinha = escolherNome(row[1], row[9]);
+      if (!nomeLinha || nomeLinha === 'Sem nome') continue;
 
       var linhaNova = new Array(HEADERS.length);
 
@@ -132,25 +132,30 @@ function importarDeOutraPlanilha(urlOuId, nomeAbaOrigem, modoImportacao) {
         linhaNova[0] = 'rec-' + numFormatado;
       }
 
-      // 2. Normaliza a Situacao/Status (coluna F / indice 5)
+      // 2. Garante Nome (Col B), Telefone (Col C) e Email (Col D) validos vindos do formulario (Cols J, K, I)
+      linhaNova[1] = escolherNome(linhaNova[1], linhaNova[9]);
+      linhaNova[2] = escolherTelefone(linhaNova[2], linhaNova[10]);
+      linhaNova[3] = escolherEmail(linhaNova[3], linhaNova[8]);
+
+      // 3. Normaliza a Situacao/Status (coluna F / indice 5)
       var statusOriginal = String(linhaNova[5] || '').trim();
       linhaNova[5] = normalizarStatus(statusOriginal);
 
-      // 3. Normaliza Recrutador (extraindo sigla limpa se estiver na coluna G ou na coluna E)
+      // 4. Normaliza Recrutador (extraindo sigla limpa se estiver na coluna G ou na coluna E)
       var siglaRec = normalizarSiglaRecrutador(linhaNova[6]) || normalizarSiglaRecrutador(linhaNova[4]);
       var celulaLimpa = normalizarCelula(linhaNova[4]);
 
       linhaNova[4] = celulaLimpa;
       linhaNova[6] = siglaRec || RECRUTADOR_VAZIO;
 
-      // 4. Formata a Data de Inscricao (coluna Y / indice 24) se for objeto Data
+      // 5. Formata a Data de Inscricao (coluna Y / indice 24) se for objeto Data
       if (linhaNova[24]) {
         linhaNova[24] = formatarData(linhaNova[24]);
       } else {
         linhaNova[24] = agora.slice(0, 10);
       }
 
-      // 5. Coluna 26: Historico e Avisos
+      // 6. Coluna 26: Historico e Avisos
       linhaNova[25] = JSON.stringify([{
         id: 'av-' + r,
         data: agora,
@@ -158,7 +163,7 @@ function importarDeOutraPlanilha(urlOuId, nomeAbaOrigem, modoImportacao) {
         texto: 'Importado da planilha original: ' + extSs.getName()
       }]);
 
-      // 6. Coluna 27: Ultima Atualizacao
+      // 7. Coluna 27: Ultima Atualizacao
       linhaNova[26] = agora;
 
       novosCandidatos.push(linhaNova);

@@ -15,9 +15,9 @@ function getCandidates() {
     // Se linha inteira estiver vazia (sem ID e sem Nome)
     if (!row[0] && !row[1] && !row[9]) continue;
 
-    var nome = String(row[COL.NOME - 1] || row[COL.NOME_FORM - 1] || '').trim();
-    var telefone = String(row[COL.TELEFONE - 1] || row[COL.TEL_FORM - 1] || '').trim();
-    var email = String(row[COL.EMAIL - 1] || row[COL.EMAIL_FORM - 1] || '').trim();
+    var nome = escolherNome(row[COL.NOME - 1], row[COL.NOME_FORM - 1]);
+    var telefone = escolherTelefone(row[COL.TELEFONE - 1], row[COL.TEL_FORM - 1]);
+    var email = escolherEmail(row[COL.EMAIL - 1], row[COL.EMAIL_FORM - 1]);
 
     var valorColCelula = row[COL.CELULA - 1];
     var valorColRecrutador = row[COL.RECRUTADOR - 1];
