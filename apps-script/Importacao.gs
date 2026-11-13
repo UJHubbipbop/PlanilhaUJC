@@ -81,7 +81,7 @@ function sincronizarRecrutamentoDoZero() {
     ui.alert(
       'Sincronizacao Concluida com Sucesso!',
       'Foram importados ' + res.importados + ' candidatos da planilha "' + res.planilhaNome + '"!\n\n' +
-      'Todas as 25 colunas foram importadas com sucesso na aba "recrutamento".\n' +
+      'Todas as 25 colunas foram importadas e normalizadas na aba "recrutamento".\n' +
       'Abra o site e clique no botao "Atualizar" para ver todas as novas informacoes!',
       ui.ButtonSet.OK
     );
@@ -106,7 +106,6 @@ function importarDeOutraPlanilha(urlOuId, nomeAbaOrigem, modoImportacao) {
 
     var destSheet = getOuCriarAbaRecrutamento();
 
-    // Se o modo for substituir, limpa todos os dados existentes mantendo o cabecalho
     var lastRowAtual = destSheet.getLastRow();
     if (lastRowAtual > 1) {
       destSheet.getRange(2, 1, lastRowAtual - 1, destSheet.getMaxColumns()).clearContent();
@@ -117,13 +116,11 @@ function importarDeOutraPlanilha(urlOuId, nomeAbaOrigem, modoImportacao) {
 
     for (var r = 1; r < values.length; r++) {
       var row = values[r];
-      // Verifica se a linha tem algum conteudo (pelo menos nome ou telefone)
       var nomeLinha = String(row[1] || row[9] || row[0] || '').trim();
       if (!nomeLinha) continue;
 
       var linhaNova = new Array(HEADERS.length);
 
-      // Copia as 25 colunas originais (indices 0 a 24)
       for (var colIdx = 0; colIdx < 25; colIdx++) {
         var val = (colIdx < row.length && row[colIdx] !== undefined) ? row[colIdx] : '';
         linhaNova[colIdx] = val;
@@ -139,24 +136,21 @@ function importarDeOutraPlanilha(urlOuId, nomeAbaOrigem, modoImportacao) {
       var statusOriginal = String(linhaNova[5] || '').trim();
       linhaNova[5] = normalizarStatus(statusOriginal);
 
-      // 3. Se a Celula estiver vazia (coluna E / indice 4), padroniza como UJC
-      if (!String(linhaNova[4] || '').trim()) {
-        linhaNova[4] = 'UJC';
-      }
+      // 3. Normaliza Recrutador (extraindo sigla limpa se estiver na coluna G ou na coluna E)
+      var siglaRec = normalizarSiglaRecrutador(linhaNova[6]) || normalizarSiglaRecrutador(linhaNova[4]);
+      var celulaLimpa = normalizarCelula(linhaNova[4]);
 
-      // 4. Se o Recrutador estiver vazio (coluna G / indice 6), padroniza
-      if (!String(linhaNova[6] || '').trim()) {
-        linhaNova[6] = RECRUTADOR_VAZIO;
-      }
+      linhaNova[4] = celulaLimpa;
+      linhaNova[6] = siglaRec || RECRUTADOR_VAZIO;
 
-      // 5. Formata a Data de Inscricao (coluna Y / indice 24) se for objeto Data
+      // 4. Formata a Data de Inscricao (coluna Y / indice 24) se for objeto Data
       if (linhaNova[24]) {
         linhaNova[24] = formatarData(linhaNova[24]);
       } else {
         linhaNova[24] = agora.slice(0, 10);
       }
 
-      // 6. Coluna 26: Historico e Avisos
+      // 5. Coluna 26: Historico e Avisos
       linhaNova[25] = JSON.stringify([{
         id: 'av-' + r,
         data: agora,
@@ -164,7 +158,7 @@ function importarDeOutraPlanilha(urlOuId, nomeAbaOrigem, modoImportacao) {
         texto: 'Importado da planilha original: ' + extSs.getName()
       }]);
 
-      // 7. Coluna 27: Ultima Atualizacao
+      // 6. Coluna 27: Ultima Atualizacao
       linhaNova[26] = agora;
 
       novosCandidatos.push(linhaNova);

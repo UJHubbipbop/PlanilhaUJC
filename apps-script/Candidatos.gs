@@ -19,14 +19,20 @@ function getCandidates() {
     var telefone = String(row[COL.TELEFONE - 1] || row[COL.TEL_FORM - 1] || '').trim();
     var email = String(row[COL.EMAIL - 1] || row[COL.EMAIL_FORM - 1] || '').trim();
 
+    var valorColCelula = row[COL.CELULA - 1];
+    var valorColRecrutador = row[COL.RECRUTADOR - 1];
+
+    var siglaRec = normalizarSiglaRecrutador(valorColRecrutador) || normalizarSiglaRecrutador(valorColCelula);
+    var celulaLimpa = normalizarCelula(valorColCelula);
+
     candidates.push({
       id: String(row[COL.ID - 1] || ('rec-' + (i + 1))),
       nome: nome,
       celular: telefone,
       email: email,
-      celula: String(row[COL.CELULA - 1] || 'UJC').trim(),
+      celula: celulaLimpa,
       status: normalizarStatus(row[COL.SITUACAO - 1]),
-      recrutador: String(row[COL.RECRUTADOR - 1] || RECRUTADOR_VAZIO).trim(),
+      recrutador: siglaRec || RECRUTADOR_VAZIO,
       prioridade: String(row[COL.PRIORIDADE - 1] || '').trim(),
       redesSociais: String(row[COL.REDES_SOCIAIS - 1] || '').trim(),
       municipio: String(row[COL.MUNICIPIO - 1] || '').trim(),
@@ -65,10 +71,15 @@ function updateCandidateStatus(candidateId, newStatus) {
 
 function assignCandidateRecruiter(candidateId, newRecruiter) {
   return comLock(function () {
-    var recrutador = String(newRecruiter || '').trim() || RECRUTADOR_VAZIO;
+    var sigla = normalizarSiglaRecrutador(newRecruiter);
+    var recrutador = sigla || RECRUTADOR_VAZIO;
     var sheet = getOuCriarAbaRecrutamento();
     var rowNum = encontrarLinhaPorId(sheet, candidateId);
     if (rowNum === -1) return { ok: false, erro: 'Candidato nao encontrado.' };
+
+    // Garante tambem que a coluna Celula da linha contenha apenas celula valida
+    var celAtual = sheet.getRange(rowNum, COL.CELULA).getValue();
+    sheet.getRange(rowNum, COL.CELULA).setValue(normalizarCelula(celAtual));
 
     sheet.getRange(rowNum, COL.RECRUTADOR).setValue(recrutador);
     sheet.getRange(rowNum, COL.ULTIMA_ATUALIZACAO).setValue(new Date().toISOString());

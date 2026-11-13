@@ -74,18 +74,22 @@ const CELULAS_PADRAO = [
   'Trabalhadores Genericos'
 ];
 
-// Iniciais dos camaradas recrutadores (preservando a configuracao do projeto)
+// Siglas dos camaradas recrutadores
 const RECRUTADORES_INICIAIS = [
-  'CMRD V.T.',
-  'CMRD G.G.',
-  'CMRD G.S.',
-  'CMRD T.L.',
-  'CMRD J.G.',
-  'CMRD L.A.',
-  'CMRD G.P.',
-  'CMRD C.M.',
-  'CMRD P.C.',
-  'CMRD A.R.'
+  'VT',
+  'GG',
+  'GS',
+  'TL',
+  'JG',
+  'LA',
+  'GP',
+  'CM',
+  'PC',
+  'AR',
+  'MA',
+  'PA',
+  'VS',
+  'CA'
 ];
 
 const RECRUTADOR_VAZIO = 'Nao atribuido';

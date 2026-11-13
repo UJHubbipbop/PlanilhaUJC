@@ -5,8 +5,8 @@
 const Estado = {
   candidatos: [],
   papel: null, // 'admin' | 'leitura'
-  celulas: [],
-  recrutadores: [],
+  celulas: ['UJC', 'Trabalhadores Genericos'],
+  recrutadores: ['VT', 'GG', 'GS', 'TL', 'JG', 'LA', 'GP', 'CM', 'PC', 'AR'],
   statusOpcoes: ['pendente', 'em recrutamento', 'contato', 'desistencia'],
   filtroStatus: 'todos',
   candidatoAbertoId: null
@@ -120,10 +120,16 @@ async function carregarDados() {
 }
 
 function receberDados(res) {
-  Estado.candidatos = res.candidatos || [];
+  Estado.candidatos = (res.candidatos || []).map(Utils.normalizarCandidato);
   Estado.papel = res.papel;
-  Estado.celulas = res.celulas || [];
-  Estado.recrutadores = res.recrutadores || [];
+  Estado.celulas = [...Utils.CELULAS_VALIDAS];
+
+  if (Array.isArray(res.recrutadores) && res.recrutadores.length > 0) {
+    Estado.recrutadores = res.recrutadores
+      .map(Utils.normalizarSiglaRecrutador)
+      .filter(Boolean);
+  }
+
   if (Array.isArray(res.statusOpcoes)) Estado.statusOpcoes = res.statusOpcoes;
 
   atualizarIndicadorPerfil();
@@ -154,15 +160,20 @@ function atualizarIndicadorPerfil() {
 }
 
 function listaRecrutadores() {
-  const set = new Set(Estado.recrutadores);
-  Estado.candidatos.forEach(c => { if (c.recrutador && c.recrutador !== 'Nao atribuido') set.add(c.recrutador); });
+  const set = new Set();
+  Estado.recrutadores.forEach(r => {
+    const s = Utils.normalizarSiglaRecrutador(r);
+    if (s) set.add(s);
+  });
+  Estado.candidatos.forEach(c => {
+    const s = Utils.normalizarSiglaRecrutador(c.recrutador);
+    if (s) set.add(s);
+  });
   return Array.from(set);
 }
 
 function listaCelulas() {
-  const set = new Set(Estado.celulas);
-  Estado.candidatos.forEach(c => { if (c.celula) set.add(c.celula); });
-  return Array.from(set);
+  return [...Utils.CELULAS_VALIDAS];
 }
 
 function preencherSelect(select, opcoes, rotuloTodos) {
@@ -173,7 +184,7 @@ function preencherSelect(select, opcoes, rotuloTodos) {
 }
 
 function atualizarOpcoesFiltros() {
-  preencherSelect($('filtro-recrutador'), [...listaRecrutadores(), 'Nao atribuido'], 'Todos os recrutadores');
+  preencherSelect($('filtro-recrutador'), listaRecrutadores(), 'Todos os recrutadores');
   preencherSelect($('filtro-celula'), listaCelulas(), 'Todas as celulas');
 }
 
@@ -382,9 +393,9 @@ async function atribuirRecrutador(id, recrutador, select) {
   select.disabled = true;
   try {
     const res = await Api.atribuirRecrutador(id, recrutador);
-    c.recrutador = res.recrutador;
+    c.recrutador = Utils.normalizarSiglaRecrutador(res.recrutador) || 'Nao atribuido';
     if (res.aviso) (c.avisos = c.avisos || []).unshift(res.aviso);
-    mostrarToast('Recrutador atualizado: ' + res.recrutador);
+    mostrarToast('Recrutador atualizado: ' + c.recrutador);
   } catch (err) {
     c.recrutador = anterior;
     tratarErro(err);
@@ -450,17 +461,25 @@ function renderizarGraficos(lista) {
 
   $('total-cadastrados').textContent = lista.length;
 
-  const porRec = contarPor(lista, c => c.recrutador || 'Nao atribuido');
-  const porCel = contarPor(lista, c => c.celula || 'UJC');
+  const porRec = contarPor(lista, c => Utils.normalizarSiglaRecrutador(c.recrutador) || 'Nao atribuido');
   const total = lista.length || 1;
 
   $('lista-recrutadores').innerHTML = porRec.length === 0
     ? '<p class="text-zinc-400 text-xs">Sem dados.</p>'
     : porRec.map(([nome, qtd]) => linhaBarra(esc(nome), qtd, total, 'bg-red-800')).join('');
 
-  $('lista-celulas').innerHTML = porCel.length === 0
-    ? '<p class="text-zinc-400 text-xs">Sem dados.</p>'
-    : porCel.map(([nome, qtd]) => linhaBarra(esc(nome), qtd, total, 'bg-rose-900')).join('');
+  // Distribuicao por Celula: exibe apenas as celulas validas ("UJC" e "Trabalhadores Genericos")
+  const mapaCel = {};
+  Utils.CELULAS_VALIDAS.forEach(nomeCel => { mapaCel[nomeCel] = 0; });
+  lista.forEach(c => {
+    const cl = Utils.normalizarCelula(c.celula);
+    mapaCel[cl] = (mapaCel[cl] || 0) + 1;
+  });
+  const porCel = Object.entries(mapaCel).sort((a, b) => b[1] - a[1]);
+
+  $('lista-celulas').innerHTML = porCel.map(([nome, qtd]) =>
+    linhaBarra(esc(nome), qtd, total, 'bg-rose-900')
+  ).join('');
 }
 
 function contarPor(lista, chaveFn) {
