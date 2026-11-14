@@ -55,6 +55,60 @@ function getCandidates() {
   return candidates;
 }
 
+function ehNomeValido(valor) {
+  if (!valor || valor instanceof Date) return false;
+  var s = String(valor).trim();
+  if (!s || s.indexOf('@') !== -1) return false;
+  if (/^\d+$/.test(s)) return false;
+  if (/gmt|hor[aá]rio/i.test(s)) return false;
+  return /[a-zA-ZÀ-ÿ]{2,}/.test(s);
+}
+
+function escolherNome(colPrincipal, colFormulario) {
+  if (ehNomeValido(colFormulario)) return String(colFormulario).trim();
+  if (ehNomeValido(colPrincipal)) return String(colPrincipal).trim();
+  return String(colFormulario || colPrincipal || 'Sem nome').trim();
+}
+
+function escolherTelefone(colPrincipal, colFormulario) {
+  var dForm = String(colFormulario || '').replace(/\D/g, '');
+  if (dForm.length >= 8) return String(colFormulario).trim();
+  var dPrin = String(colPrincipal || '').replace(/\D/g, '');
+  if (dPrin.length >= 8) return String(colPrincipal).trim();
+  return String(colFormulario || colPrincipal || '').trim();
+}
+
+function escolherEmail(colPrincipal, colFormulario) {
+  var eForm = String(colFormulario || '').trim();
+  if (eForm.indexOf('@') !== -1) return eForm;
+  var ePrin = String(colPrincipal || '').trim();
+  if (ePrin.indexOf('@') !== -1) return ePrin;
+  return eForm || ePrin || '';
+}
+
+function normalizarSiglaRecrutador(valor) {
+  if (!valor) return '';
+  var bruto = String(valor).trim();
+  if (!bruto) return '';
+  if (/nao atribu|não atribu|^ujc$|^trabalhadores|^geral$/i.test(bruto)) return '';
+  if (/\d/.test(bruto) || /gmt|hor[aá]rio|email/i.test(bruto)) return '';
+
+  var limpo = bruto
+    .replace(/^cmrd\b/i, '')
+    .replace(/[.*,\s\-_/()]/g, '')
+    .toUpperCase();
+
+  if (!/^[A-Z]{2,5}$/.test(limpo)) return '';
+  if (limpo === 'UJC' || limpo === 'GERAL') return '';
+  return limpo;
+}
+
+function normalizarCelula(valor) {
+  var s = String(valor || '').toLowerCase().trim();
+  if (s.includes('trabalhador')) return 'Trabalhadores Genericos';
+  return 'UJC';
+}
+
 function updateCandidateStatus(candidateId, newStatus) {
   return comLock(function () {
     var sheet = getOuCriarAbaRecrutamento();
@@ -77,7 +131,6 @@ function assignCandidateRecruiter(candidateId, newRecruiter) {
     var rowNum = encontrarLinhaPorId(sheet, candidateId);
     if (rowNum === -1) return { ok: false, erro: 'Candidato nao encontrado.' };
 
-    // Garante tambem que a coluna Celula da linha contenha apenas celula valida
     var celAtual = sheet.getRange(rowNum, COL.CELULA).getValue();
     sheet.getRange(rowNum, COL.CELULA).setValue(normalizarCelula(celAtual));
 
